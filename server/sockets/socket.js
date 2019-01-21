@@ -16,20 +16,22 @@ io.on('connection', (client) => {
         client.join(data.sala)
 
         let personas = usuarios.agregarPersona(client.id, data.nombre, data.sala)
-        client.broadcast.to(data.sala).emit('crearMensaje', crearMensaje('Administrador', `${data.nombre} in sala ${data.sala}`))
+        client.broadcast.to(data.sala).emit('crearMensaje', crearMensaje('Administrador', `${data.nombre} entro a sala ${data.sala}`))
         client.broadcast.to(data.sala).emit('listaPersonas', usuarios.getPersonasPorSala(data.sala))
         callback(usuarios.getPersonasPorSala(data.sala))
     })
 
     client.on('disconnect', () => {
         let personaBorrada = usuarios.borrarPersona(client.id)
-        client.broadcast.to(personaBorrada.sala).emit('crearMensaje', crearMensaje('Administrador', `${personaBorrada.nombre} out sala ${personaBorrada.sala}`))
+        client.broadcast.to(personaBorrada.sala).emit('crearMensaje', crearMensaje('Administrador', `${personaBorrada.nombre} salio de sala ${personaBorrada.sala}`))
         client.broadcast.to(personaBorrada.sala).emit('listaPersonas', usuarios.getPersonasPorSala(personaBorrada.sala))
     })
 
-    client.on('crearMensaje', (data) => {
+    client.on('crearMensaje', (data, callback) => {
         let persona = usuarios.getPersona(client.id)
-        client.broadcast.to(persona.sala).emit('crearMensaje', crearMensaje(persona.nombre, data.mensaje))
+        let mensaje = crearMensaje(persona.nombre, data.mensaje)
+        client.broadcast.to(persona.sala).emit('crearMensaje', mensaje)
+        callback(mensaje)
     })
 
     client.on('mensajePrivado', (data) => {
